@@ -213,6 +213,29 @@ class MTLS {
             return (a1 > a2 ? a1 : a2);
         } // end function max
 
+        template<typename T, typename F, typename G, typename... Args> class Dummy {
+            /* dummy class for containing calculation function func and
+             * derivative derFunc */
+            public:
+                Dummy() {};
+                virtual ~Dummy() {};
+
+                Eigen::Matrix<T, Eigen::Dynamic, 1> derivative;
+
+                F f;
+                G df;
+
+                T eva(const Eigen::Matrix<T, Eigen::Dynamic, 1>& x, Args...
+                        ags) {
+                    derivative = df(x);
+                    return f(x, ags...);
+                } // end function eva
+
+                const Eigen::Matrix<T, Eigen::Dynamic, 1>& der() const {
+                    return derivative;
+                } // end function der
+        }; // end class Dummy
+
     public:
         template<typename T, typename F, typename G, typename...  Args>
             static inline T linesearchMoreThuente(const Eigen::Matrix<T,
@@ -221,39 +244,18 @@ class MTLS {
                     Args... args) {
             /* override in case a object for calculation function and
              * parameters struct are both not given */
-            class Dummy {
-                /* dummy class for containing calculation function func and
-                 * derivative derFunc */
-                public:
-                    Dummy() {};
-                    virtual ~Dummy() {};
-
-                    Eigen::Matrix<T, Eigen::Dynamic, 1> derivative;
-
-                    F f;
-                    G df;
-
-                    T eva(const Eigen::Matrix<T, Eigen::Dynamic, 1>& x, Args...
-                            ags) {
-                        derivative = df(x);
-                        return f(x, ags...);
-                    } // end function eva
-
-                    const Eigen::Matrix<T, Eigen::Dynamic, 1>& der() const {
-                        return derivative;
-                    } // end function der
-            };
             
             // create object and set functions inside dummy (essentially using
             // Dummy as wrapper)
 //             std::shared_ptr<Dummy> d = std::make_shared<Dummy>();
-            Dummy* d = new Dummy();
+            Dummy<T, F, G, Args...>* d = new Dummy<T, F, G, Args...>();
             d->f = func;
             d->df = derFunc;
             d->derivative = derFunc(x0);
 
             double s = linesearchMoreThuente(searchDirection, x0, f0, d,
-                    &Dummy::eva , &Dummy::der, args...);
+                    &Dummy<T, F, G, Args...>::eva , &Dummy<T, F, G,
+                    Args...>::der, args...);
             delete d;
             return s;
         } // end function linesearchMoreThuente
@@ -266,38 +268,18 @@ class MTLS {
                     func, G derFunc, Args... args) {
             /* override in case a object for calculation function is not given
              * */
-            class Dummy {
-                /* dummy class for containing calculation function func and
-                 * derivative derFunc */
-                public:
-                    Dummy() {};
-                    virtual ~Dummy() {};
-
-                    EigenVecT derivative;
-
-                    F f;
-                    G df;
-                    
-                    T eva(EigenVecT x, Args... ags) {
-                        derivative = df(x);
-                        return f(x, ags...);
-                    } // end function eva 
-
-                    EigenVecT der() {
-                        return derivative;
-                    } // end function der
-            };
 
             // create object and set functions inside dummy (essentially using
             // Dummy as wrapper)
 //             std::shared_ptr<Dummy> d = std::make_shared<Dummy>();
-            Dummy* d = new Dummy();
+            Dummy<T, F, G, Args...>* d = new Dummy<T, F, G, Args...>();
             d->f = func;
             d->df = derFunc;
             d->derivative = derFunc(x0);
 
             double s = linesearchMoreThuente(searchDirection, x0, f0, d,
-                    &Dummy::eva , &Dummy::der, args...);
+                    &Dummy<T, F, G, Args...>::eva , &Dummy<T, F, G,
+                    Args...>::der, args...);
             delete d;
             return s;
         } // end function linesearchMoreThuente

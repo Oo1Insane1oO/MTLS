@@ -14,7 +14,9 @@ class Dummy {
     /* dummy class for containing calculation function func and
      * derivative derFunc */
     public:
-        Dummy() {};
+        Dummy(int size) {
+            derivative = Eigen::VectorXd::Zero(size);
+        };
         virtual ~Dummy() {};
 
         Eigen::VectorXd derivative;
@@ -61,7 +63,7 @@ int main() {
             &derivative);
 
     // call with class
-    Dummy* d = new Dummy();
+    Dummy* d = new Dummy(2);
     step = MTLS::linesearchMoreThuente(p, x0, f0, d, &Dummy::f, &Dummy::g);
     step = MTLS::linesearchMoreThuente(&params, p, x0, f0, d, &Dummy::f,
             &Dummy::g);
