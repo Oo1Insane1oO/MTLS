@@ -28,7 +28,7 @@ class Dummy {
             return x;
         }
 
-        const Eigen::VectorXd& der() const {
+        const Eigen::VectorXd& g() const {
             return derivative;
         } // end function der
 };
@@ -56,15 +56,15 @@ int main() {
     // simple call with default parameters
     step = MTLS::linesearchMoreThuente(p, x0, f0, &evaluate, &derivative);
 
-//     // call with struct
-//     step = MTLS::linesearchMoreThuente(&params, p, x0, f0, &evaluate,
-//             &derivative);
+    // call with struct
+    step = MTLS::linesearchMoreThuente(&params, p, x0, f0, &evaluate,
+            &derivative);
 
     // call with class
     Dummy* d = new Dummy();
-    step = MTLS::linesearchMoreThuente(p, x0, f0, d, &evaluate, &derivative);
-//     step = MTLS::linesearchMoreThuente(&params, p, x0, f0, d, &evaluate,
-//             &derivative);
+    step = MTLS::linesearchMoreThuente(p, x0, f0, d, &Dummy::f, &Dummy::g);
+    step = MTLS::linesearchMoreThuente(&params, p, x0, f0, d, &Dummy::f,
+            &Dummy::g);
     delete d;
 
     return 0;

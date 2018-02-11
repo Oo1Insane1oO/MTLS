@@ -246,13 +246,16 @@ class MTLS {
             
             // create object and set functions inside dummy (essentially using
             // Dummy as wrapper)
-            std::shared_ptr<Dummy> d = std::make_shared<Dummy>();
+//             std::shared_ptr<Dummy> d = std::make_shared<Dummy>();
+            Dummy* d = new Dummy();
             d->f = func;
             d->df = derFunc;
             d->derivative = derFunc(x0);
 
-            return linesearchMoreThuente(searchDirection, x0, f0, d, &Dummy::eva
-                    , &Dummy::der, args...);
+            double s = linesearchMoreThuente(searchDirection, x0, f0, d,
+                    &Dummy::eva , &Dummy::der, args...);
+            delete d;
+            return s;
         } // end function linesearchMoreThuente
         
         template<typename P, typename T, typename F, typename G, typename
@@ -287,13 +290,16 @@ class MTLS {
 
             // create object and set functions inside dummy (essentially using
             // Dummy as wrapper)
-            std::shared_ptr<Dummy> d = std::make_shared<Dummy>();
+//             std::shared_ptr<Dummy> d = std::make_shared<Dummy>();
+            Dummy* d = new Dummy();
             d->f = func;
             d->df = derFunc;
             d->derivative = derFunc(x0);
 
-            return linesearchMoreThuente(&inputs, searchDirection, x0, f0, d,
+            double s = linesearchMoreThuente(searchDirection, x0, f0, d,
                     &Dummy::eva , &Dummy::der, args...);
+            delete d;
+            return s;
         } // end function linesearchMoreThuente
         
         template<typename T, class U, typename F, typename G, typename...
@@ -318,12 +324,6 @@ class MTLS {
             return linesearchMoreThuente(&defaultParams, searchDirection, x0,
                     f0, funcObj, func, derFunc, args...);
         } // end function linesearchMoreThuente
-
-        template<class U> auto operator->*(U pmf) const {
-            return [=](auto&&... args) {
-                return (ptr->*pmf)(std::forward<decltype(args)>(args)...);
-            };
-        } // end overload ->*
         
         template<typename P, typename T, class U, typename F, typename G,
             typename ...Args> static inline T linesearchMoreThuente(P* inputs,
