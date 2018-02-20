@@ -1,5 +1,4 @@
 #include "MTLS.h"
-#include <iostream>
 
 double evaluate(const Eigen::VectorXd& x) {
     /* calculate x**2 */

@@ -242,7 +242,7 @@ class MTLS {
                     Eigen::Dynamic, 1>& searchDirection, const Eigen::Matrix<T,
                     Eigen::Dynamic, 1>& x0, const T f0, F func, G derFunc,
                     Args... args) {
-            /* override in case a object for calculation function and
+            /* override in case an object for calculation function and
              * parameters struct are both not given */
             
             // create object and set functions inside dummy (essentially using
