@@ -248,7 +248,7 @@ class MTLS {
             // create object and set functions inside dummy (essentially using
             // Dummy as wrapper)
             std::shared_ptr<Dummy<T,F,G,Args...>> d =
-                std::make_shared<Dummy<T,F,G,Args...>>();
+                std::make_unique<Dummy<T,F,G,Args...>>();
             d->f = func;
             d->df = derFunc;
             d->derivative = derFunc(x0);
@@ -271,7 +271,7 @@ class MTLS {
             // create object and set functions inside dummy (essentially using
             // Dummy as wrapper)
             std::shared_ptr<Dummy<T,F,G,Args...>> d =
-                std::make_shared<Dummy<T,F,G,Args...>>();
+                std::make_unique<Dummy<T,F,G,Args...>>();
             d->f = func;
             d->df = derFunc;
             d->derivative = derFunc(x0);
