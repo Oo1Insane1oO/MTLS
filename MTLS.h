@@ -247,16 +247,15 @@ class MTLS {
             
             // create object and set functions inside dummy (essentially using
             // Dummy as wrapper)
-//             std::shared_ptr<Dummy> d = std::make_shared<Dummy>();
-            Dummy<T, F, G, Args...>* d = new Dummy<T, F, G, Args...>();
+            std::shared_ptr<Dummy<T,F,G,Args...>> d =
+                std::make_shared<Dummy<T,F,G,Args...>>();
             d->f = func;
             d->df = derFunc;
             d->derivative = derFunc(x0);
 
-            double s = linesearchMoreThuente(searchDirection, x0, f0, d,
-                    &Dummy<T, F, G, Args...>::eva , &Dummy<T, F, G,
-                    Args...>::der, args...);
-            delete d;
+            double s = linesearchMoreThuente(searchDirection, x0, f0, d.get(),
+                    &Dummy<T,F,G,Args...>::eva , &Dummy<T,F,G,Args...>::der,
+                    args...);
             return s;
         } // end function linesearchMoreThuente
         
@@ -271,16 +270,15 @@ class MTLS {
 
             // create object and set functions inside dummy (essentially using
             // Dummy as wrapper)
-//             std::shared_ptr<Dummy> d = std::make_shared<Dummy>();
-            Dummy<T, F, G, Args...>* d = new Dummy<T, F, G, Args...>();
+            std::shared_ptr<Dummy<T,F,G,Args...>> d =
+                std::make_shared<Dummy<T,F,G,Args...>>();
             d->f = func;
             d->df = derFunc;
             d->derivative = derFunc(x0);
 
-            double s = linesearchMoreThuente(searchDirection, x0, f0, d,
+            double s = linesearchMoreThuente(searchDirection, x0, f0, d.get(),
                     &Dummy<T, F, G, Args...>::eva , &Dummy<T, F, G,
                     Args...>::der, args...);
-            delete d;
             return s;
         } // end function linesearchMoreThuente
         
