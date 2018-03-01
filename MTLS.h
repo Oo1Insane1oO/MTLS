@@ -235,8 +235,94 @@ class MTLS {
                     return derivative;
                 } // end function der
         }; // end class Dummy
+        
+        template<typename T, typename F, typename G, typename... Args> class
+            DummyRaw {
+            /* dummy class for containing calculation function func and
+             * derivative derFunc that return plain arrays */
+            private:
+                unsigned int m_xSize;
+
+            public:
+                DummyRaw(const unsigned int& xSize) {
+                    m_xSize = xSize;
+                };
+                virtual ~DummyRaw() {};
+
+                Eigen::Matrix<T, Eigen::Dynamic, 1> derivative;
+
+                F f;
+                G df;
+
+                T eva(const Eigen::Matrix<T, Eigen::Dynamic, 1>& x, Args...
+                        ags) { 
+                    derivative = Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic,
+                               1>>(df(x.data()), m_xSize, 1);
+                    return f(x.data(), ags...);
+                } // end function eva
+
+                const Eigen::Matrix<T, Eigen::Dynamic, 1>& der() const {
+                    return derivative;
+                } // end function der
+        }; // end class DummyRaw
 
     public:
+        template<typename T, typename F, typename G, typename... Args> static
+            inline T linesearchMoreThuente(T* searchDirection, T* x0, const T
+                    f0, F func, G derFunc, Args... args) {
+                /* override in case raw arrays are given and an object for
+                 * calculation function and parameters struct are both not
+                 * given */
+            unsigned int xSize = sizeof(x0) / sizeof(T);
+            std::shared_ptr<DummyRaw<T,F,G,Args...>> d =
+                std::make_unique<DummyRaw<T,F,G,Args...>>(xSize);
+
+            Eigen::Matrix<T, Eigen::Dynamic, 1> searchDirE =
+                Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic,
+                1>>(searchDirection, xSize, 1);
+            Eigen::Matrix<T, Eigen::Dynamic, 1> x0E =
+                Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, 1>>(x0, xSize, 1);
+
+            d->f = func;
+            d->df = derFunc;
+            d->derivative = Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic,
+                1>>(derFunc(x0), xSize, 1);
+
+            return linesearchMoreThuente(searchDirE, x0E, f0, d.get(),
+                    &DummyRaw<T,F,G,Args...>::eva,
+                    &DummyRaw<T,F,G,Args...>::der, args...);
+        } // end function lineseearchMoreThuente
+        
+        template<typename P, typename T, typename F, typename G, typename...
+            Args> static inline T linesearchMoreThuente(P* inputs, T*
+                    searchDirection, T* x0, const T f0, F func, G derFunc,
+                    Args... args) {
+            /* override in case raw arrays are given and an object for
+             * calculation function is not given */
+
+            // find size of array and create dummy object
+            size_t xSize = sizeof(x0) / sizeof(T);
+            std::shared_ptr<DummyRaw<T,F,G,Args...>> d =
+                std::make_unique<DummyRaw<T,F,G,Args...>>(xSize);
+
+            // convert plain arrays to eigen vectors
+            Eigen::Matrix<T, Eigen::Dynamic, 1> searchDirE =
+                Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic,
+                1>>(searchDirection, xSize, 1);
+            Eigen::Matrix<T, Eigen::Dynamic, 1> x0E =
+                Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, 1>>(x0, xSize, 1);
+
+            // set calculation and derivative function
+            d->f = func;
+            d->df = derFunc;
+            d->derivative = Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic,
+                1>>(derFunc(x0), xSize, 1);
+
+            return linesearchMoreThuente(inputs, searchDirE, x0E, f0, d.get(),
+                    &DummyRaw<T,F,G,Args...>::eva,
+                    &DummyRaw<T,F,G,Args...>::der, args...);
+        } // end function lineseearchMoreThuente
+
         template<typename T, typename F, typename G, typename...  Args>
             static inline T linesearchMoreThuente(const Eigen::Matrix<T,
                     Eigen::Dynamic, 1>& searchDirection, const Eigen::Matrix<T,
@@ -253,10 +339,9 @@ class MTLS {
             d->df = derFunc;
             d->derivative = derFunc(x0);
 
-            double s = linesearchMoreThuente(searchDirection, x0, f0, d.get(),
+            return linesearchMoreThuente(searchDirection, x0, f0, d.get(),
                     &Dummy<T,F,G,Args...>::eva , &Dummy<T,F,G,Args...>::der,
                     args...);
-            return s;
         } // end function linesearchMoreThuente
         
         template<typename P, typename T, typename F, typename G, typename
@@ -265,7 +350,7 @@ class MTLS {
                     Eigen::Matrix<T, Eigen::Dynamic, 1>& searchDirection, const
                     Eigen::Matrix<T, Eigen::Dynamic, 1>& x0, const T f0, F
                     func, G derFunc, Args... args) {
-            /* override in case a object for calculation function is not given
+            /* override in case an object for calculation function is not given
              * */
 
             // create object and set functions inside dummy (essentially using
@@ -276,10 +361,9 @@ class MTLS {
             d->df = derFunc;
             d->derivative = derFunc(x0);
 
-            double s = linesearchMoreThuente(searchDirection, x0, f0, d.get(),
-                    &Dummy<T, F, G, Args...>::eva , &Dummy<T, F, G,
+            return linesearchMoreThuente(inputs, searchDirection, x0, f0,
+                    d.get(), &Dummy<T, F, G, Args...>::eva , &Dummy<T, F, G,
                     Args...>::der, args...);
-            return s;
         } // end function linesearchMoreThuente
         
         template<typename T, class U, typename F, typename G, typename...

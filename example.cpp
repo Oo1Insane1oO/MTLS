@@ -8,9 +8,23 @@ double evaluate(const Eigen::VectorXd& x) {
 Eigen::VectorXd derivative(const Eigen::VectorXd& x) {
     return x;
 } // end function derivative
+
+double evalRaw(const double* x) {
+    /* calculate x**2 */
+    double norm = 0.0;
+    for (unsigned int i = 0; i < sizeof(x)/sizeof(x[0]); ++i) {
+        norm += x[i]*x[i];
+    } // end fori
+    return norm;
+} // end function evalRaw
+
+double* derRaw(const double* x) {
+    /* calculate x**2 */
+    return (double*)x;
+} // end function evalRaw
             
 class Dummy {
-    /* dummy class for containing calculation function func and
+    /* Dummy class for containing calculation function func and
      * derivative derFunc */
     public:
         Dummy(int size) {
@@ -67,6 +81,21 @@ int main() {
     step = MTLS::linesearchMoreThuente(&params, p, x0, f0, d, &Dummy::f,
             &Dummy::g);
     delete d;
+
+    // initialize with plain arrays
+    double x0Raw[2];
+    x0Raw[0] = 2.0;
+    x0Raw[1] = 2.0;
+    f0 = evalRaw(x0Raw);
+    double pRaw[2];
+    memcpy(&pRaw, derRaw(x0Raw), sizeof(pRaw));
+
+    // call with plain arrays and default parameters
+    step = MTLS::linesearchMoreThuente(pRaw, x0Raw, f0, &evalRaw, &derRaw);
+    
+    // call with plain arrays and parameters struct
+    step = MTLS::linesearchMoreThuente(&params, pRaw, x0Raw, f0, &evalRaw,
+            &derRaw);
 
     return 0;
 } // end main
